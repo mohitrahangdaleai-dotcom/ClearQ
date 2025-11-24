@@ -1,6 +1,6 @@
 import google.generativeai as genai
 import json
-from app import db, User, Job, JobMatch
+from models import db, User, Job, JobMatch
 from config import Config
 
 def extract_resume_data(resume_text):
@@ -173,4 +173,5 @@ def calculate_all_matches(user_id):
             )
             db.session.add(new_match)
     
+
     db.session.commit()
