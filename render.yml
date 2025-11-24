@@ -1,0 +1,19 @@
+services:
+  - type: web
+    name: clearq-job-matcher
+    env: python
+    plan: free
+    buildCommand: pip install -r requirements.txt
+    startCommand: gunicorn app:app
+    envVars:
+      - key: SECRET_KEY
+        generateValue: true
+      - key: GEMINI_API_KEY
+        value: your-gemini-api-key-here
+      - key: RENDER_ENV
+        value: production
+
+  - type: postgres
+    name: clearq-database
+    plan: free
+    ipAllowList: []
