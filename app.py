@@ -10,19 +10,20 @@ from utils.ai_processor import extract_resume_data, calculate_job_match, calcula
 from utils.resume_parser import parse_resume, allowed_file
 from utils.matcher import get_user_matches, get_user_match_stats, get_missing_skills_analysis, update_all_user_matches
 
+
 app = Flask(__name__)
 app.config.from_object(Config)
 
-# Database configuration - SQLite for development, MySQL for production
-if os.environ.get('HOSTINGER_ENV') == 'production':
-    # Production - Use Hostinger MySQL with mysql-connector-python
-    app.config['SQLALCHEMY_DATABASE_URI'] = f"mysql+mysqlconnector://{os.environ.get('MYSQL_USER')}:{os.environ.get('MYSQL_PASSWORD')}@{os.environ.get('MYSQL_HOST')}/{os.environ.get('MYSQL_DB')}"
-    print("✅ Using MySQL database (Production)")
+import os
+
+# Database configuration
+if os.environ.get('RAILWAY_ENVIRONMENT'):
+    # Production - Use Railway PostgreSQL
+    app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DATABASE_URL').replace('postgres://', 'postgresql://')
 else:
     # Development - Use SQLite
     basedir = os.path.abspath(os.path.dirname(__file__))
     app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///' + os.path.join(basedir, 'job_matching.db')
-    print("✅ Using SQLite database (Development)")
 
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.config['SQLALCHEMY_ENGINE_OPTIONS'] = {
@@ -459,3 +460,4 @@ def internal_error(error):
 if __name__ == '__main__':
     port = int(os.environ.get('PORT', 5000))
     app.run(host='0.0.0.0', port=port, debug=False)
+
