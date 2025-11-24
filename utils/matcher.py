@@ -1,5 +1,5 @@
 import json
-from app import db, Job, JobMatch
+from models import db, User, Job, JobMatch
 
 def get_user_matches(user_id, limit=10):
     """Get job matches for a specific user using SQLAlchemy"""
@@ -77,4 +77,5 @@ def update_all_user_matches():
     for user in users:
         calculate_all_matches(user.id)
     
+
     return len(users)
