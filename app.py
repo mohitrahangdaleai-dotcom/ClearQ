@@ -1,24 +1,22 @@
 from flask import Flask, render_template, request, jsonify, session, redirect, url_for, flash
-from flask_sqlalchemy import SQLAlchemy
 import google.generativeai as genai
 import bcrypt
 import json
 import os
 from config import Config
 
+# Import from models instead of defining here
+from models import db, User, Job, JobMatch
 from utils.ai_processor import extract_resume_data, calculate_job_match, calculate_all_matches
 from utils.resume_parser import parse_resume, allowed_file
 from utils.matcher import get_user_matches, get_user_match_stats, get_missing_skills_analysis, update_all_user_matches
 
-
 app = Flask(__name__)
 app.config.from_object(Config)
 
-import os
-
 # Database configuration
-if os.environ.get('RAILWAY_ENVIRONMENT'):
-    # Production - Use Railway PostgreSQL
+if os.environ.get('DATABASE_URL'):
+    # Production - Use Render PostgreSQL
     app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DATABASE_URL').replace('postgres://', 'postgresql://')
 else:
     # Development - Use SQLite
@@ -31,85 +29,51 @@ app.config['SQLALCHEMY_ENGINE_OPTIONS'] = {
     'pool_pre_ping': True
 }
 
-db = SQLAlchemy(app)
+# Initialize db with app
+db.init_app(app)
 
-# Define models
-class User(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    email = db.Column(db.String(255), unique=True, nullable=False)
-    password_hash = db.Column(db.String(255), nullable=False)
-    name = db.Column(db.String(255))
-    phone = db.Column(db.String(50))
-    skills = db.Column(db.Text)
-    experience = db.Column(db.Text)
-    education = db.Column(db.Text)
-    preferred_location = db.Column(db.String(255))
-    expected_salary = db.Column(db.String(100))
-    resume_text = db.Column(db.Text)
-    created_at = db.Column(db.DateTime, default=db.func.current_timestamp())
-
-class Job(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    title = db.Column(db.String(255), nullable=False)
-    company = db.Column(db.String(255), nullable=False)
-    description = db.Column(db.Text)
-    required_skills = db.Column(db.Text)
-    experience_required = db.Column(db.String(100))
-    location = db.Column(db.String(255))
-    salary_range = db.Column(db.String(100))
-    created_at = db.Column(db.DateTime, default=db.func.current_timestamp())
-
-class JobMatch(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
-    job_id = db.Column(db.Integer, db.ForeignKey('job.id'))
-    match_percentage = db.Column(db.Float)
-    matched_skills = db.Column(db.Text)
-    missing_skills = db.Column(db.Text)
-    fit_summary = db.Column(db.Text)
-    created_at = db.Column(db.DateTime, default=db.func.current_timestamp())
-
-# Create tables
-with app.app_context():
-    try:
-        db.create_all()
-        
-        # Add sample jobs if none exist
-        if db.session.query(Job).count() == 0:
-            sample_jobs = [
-                Job(
-                    title='Python Developer',
-                    company='Tech Solutions Inc.',
-                    description='We are looking for a skilled Python developer with experience in web development and AI applications.',
-                    required_skills='["Python", "Flask", "SQL", "REST API", "Git"]',
-                    experience_required='2-4 years',
-                    location='Remote',
-                    salary_range='$60,000 - $90,000'
-                ),
-                Job(
-                    title='Frontend Developer',
-                    company='Web Innovations LLC',
-                    description='Join our frontend team to build modern, responsive web applications using React and TypeScript.',
-                    required_skills='["JavaScript", "React", "TypeScript", "CSS", "HTML5"]',
-                    experience_required='1-3 years',
-                    location='New York, NY',
-                    salary_range='$70,000 - $100,000'
-                ),
-                Job(
-                    title='Data Scientist',
-                    company='Data Analytics Corp',
-                    description='Seeking data scientist with machine learning experience to analyze large datasets and build predictive models.',
-                    required_skills='["Python", "Machine Learning", "SQL", "Pandas", "Statistics"]',
-                    experience_required='3-5 years',
-                    location='San Francisco, CA',
-                    salary_range='$90,000 - $120,000'
-                )
-            ]
-            db.session.bulk_save_objects(sample_jobs)
-            db.session.commit()
-            print("✅ Database tables created and sample jobs added!")
-    except Exception as e:
-        print(f"❌ Database initialization error: {e}")
+# Create tables and sample data
+def initialize_database():
+    with app.app_context():
+        try:
+            db.create_all()
+            
+            # Add sample jobs if none exist
+            if db.session.query(Job).count() == 0:
+                sample_jobs = [
+                    Job(
+                        title='Python Developer',
+                        company='Tech Solutions Inc.',
+                        description='We are looking for a skilled Python developer with experience in web development and AI applications.',
+                        required_skills='["Python", "Flask", "SQL", "REST API", "Git"]',
+                        experience_required='2-4 years',
+                        location='Remote',
+                        salary_range='$60,000 - $90,000'
+                    ),
+                    Job(
+                        title='Frontend Developer',
+                        company='Web Innovations LLC',
+                        description='Join our frontend team to build modern, responsive web applications using React and TypeScript.',
+                        required_skills='["JavaScript", "React", "TypeScript", "CSS", "HTML5"]',
+                        experience_required='1-3 years',
+                        location='New York, NY',
+                        salary_range='$70,000 - $100,000'
+                    ),
+                    Job(
+                        title='Data Scientist',
+                        company='Data Analytics Corp',
+                        description='Seeking data scientist with machine learning experience to analyze large datasets and build predictive models.',
+                        required_skills='["Python", "Machine Learning", "SQL", "Pandas", "Statistics"]',
+                        experience_required='3-5 years',
+                        location='San Francisco, CA',
+                        salary_range='$90,000 - $120,000'
+                    )
+                ]
+                db.session.bulk_save_objects(sample_jobs)
+                db.session.commit()
+                print("✅ Database tables created and sample jobs added!")
+        except Exception as e:
+            print(f"❌ Database initialization error: {e}")
 
 # Configure Gemini
 if app.config.get('GEMINI_API_KEY'):
@@ -446,6 +410,9 @@ def add_job():
             print(f"Add job error: {e}")
             return redirect(url_for('admin'))
 
+# Initialize database when app starts
+initialize_database()
+
 # Error handlers
 @app.errorhandler(404)
 def not_found_error(error):
@@ -460,4 +427,3 @@ def internal_error(error):
 if __name__ == '__main__':
     port = int(os.environ.get('PORT', 5000))
     app.run(host='0.0.0.0', port=port, debug=False)
-
