@@ -1,0 +1,56 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="hero-section text-center py-5 bg-light rounded">
+    <div class="container">
+        <h1 class="display-4 mb-4">Find Your Dream Job with ClearQ AI</h1>
+        <p class="lead mb-4">Upload your resume and let ClearQ AI match you with perfect job opportunities.</p>
+        
+        {% if not session.user_id %}
+            <div class="d-grid gap-2 d-md-flex justify-content-md-center">
+                <a href="{{ url_for('register') }}" class="btn btn-primary btn-lg me-md-2">
+                    <i class="fas fa-user-plus"></i> Get Started
+                </a>
+                <a href="{{ url_for('login') }}" class="btn btn-outline-primary btn-lg">
+                    <i class="fas fa-sign-in-alt"></i> Login
+                </a>
+            </div>
+        {% else %}
+            <div class="d-grid gap-2 d-md-flex justify-content-md-center">
+                <a href="{{ url_for('dashboard') }}" class="btn btn-primary btn-lg me-md-2">
+                    <i class="fas fa-tachometer-alt"></i> Go to Dashboard
+                </a>
+                <a href="{{ url_for('upload_resume') }}" class="btn btn-success btn-lg">
+                    <i class="fas fa-upload"></i> Upload Resume
+                </a>
+            </div>
+        {% endif %}
+    </div>
+</div>
+
+<div class="features-section mt-5">
+    <div class="row text-center">
+        <div class="col-md-4 mb-4">
+            <div class="feature-card p-4 border rounded">
+                <i class="fas fa-robot fa-3x text-primary mb-3"></i>
+                <h4>AI-Powered Matching</h4>
+                <p>Our advanced AI analyzes your skills and experience to find the perfect job matches.</p>
+            </div>
+        </div>
+        <div class="col-md-4 mb-4">
+            <div class="feature-card p-4 border rounded">
+                <i class="fas fa-file-upload fa-3x text-primary mb-3"></i>
+                <h4>Resume Parsing</h4>
+                <p>Upload your resume and we'll automatically extract all relevant information.</p>
+            </div>
+        </div>
+        <div class="col-md-4 mb-4">
+            <div class="feature-card p-4 border rounded">
+                <i class="fas fa-chart-line fa-3x text-primary mb-3"></i>
+                <h4>Smart Analytics</h4>
+                <p>Get insights into your match percentage, missing skills, and career recommendations.</p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

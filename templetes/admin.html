@@ -1,0 +1,101 @@
+{% extends "base.html" %}
+
+{% block title %}Admin Panel - AI Job Matcher{% endblock %}
+
+{% block content %}
+<h2 class="mb-4"><i class="fas fa-cog"></i>ClearQ Admin Panel</h2>
+
+<div class="row">
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="fas fa-plus-circle"></i> Add New Job</h5>
+            </div>
+            <div class="card-body">
+                <form method="POST" action="{{ url_for('add_job') }}">
+                    <div class="mb-3">
+                        <label for="title" class="form-label">Job Title</label>
+                        <input type="text" class="form-control" id="title" name="title" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="company" class="form-label">Company</label>
+                        <input type="text" class="form-control" id="company" name="company" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="description" class="form-label">Description</label>
+                        <textarea class="form-control" id="description" name="description" rows="4" required></textarea>
+                    </div>
+                    <div class="mb-3">
+                        <label for="required_skills" class="form-label">Required Skills (comma separated)</label>
+                        <input type="text" class="form-control" id="required_skills" name="required_skills" 
+                               placeholder="Python, JavaScript, SQL, etc." required>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="experience_required" class="form-label">Experience Required</label>
+                            <input type="text" class="form-control" id="experience_required" name="experience_required" 
+                                   placeholder="2-4 years" required>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="location" class="form-label">Location</label>
+                            <input type="text" class="form-control" id="location" name="location" required>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label for="salary_range" class="form-label">Salary Range</label>
+                        <input type="text" class="form-control" id="salary_range" name="salary_range" 
+                               placeholder="$60,000 - $90,000" required>
+                    </div>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-plus"></i> Add Job
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="fas fa-briefcase"></i> Current Jobs ({{ jobs|length }})</h5>
+            </div>
+            <div class="card-body" style="max-height: 400px; overflow-y: auto;">
+                {% if jobs %}
+                <div class="list-group">
+                    {% for job in jobs %}
+                    <div class="list-group-item">
+                        <h6 class="mb-1">{{ job.title }}</h6>
+                        <p class="mb-1 text-muted">{{ job.company }} - {{ job.location }}</p>
+                        <small>Posted: {{ job.created_at.strftime('%Y-%m-%d') }}</small>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <p class="text-muted">No jobs posted yet.</p>
+                {% endif %}
+            </div>
+        </div>
+        
+        <div class="card mt-4">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="fas fa-users"></i> Registered Users ({{ users|length }})</h5>
+            </div>
+            <div class="card-body" style="max-height: 300px; overflow-y: auto;">
+                {% if users %}
+                <div class="list-group">
+                    {% for user in users %}
+                    <div class="list-group-item">
+                        <h6 class="mb-1">{{ user.name }}</h6>
+                        <p class="mb-1 text-muted">{{ user.email }}</p>
+                        <small>Joined: {{ user.created_at.strftime('%Y-%m-%d') }}</small>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <p class="text-muted">No users registered yet.</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

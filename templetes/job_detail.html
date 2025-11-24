@@ -1,0 +1,58 @@
+{% extends "base.html" %}
+
+{% block title %}{{ job.title }} - AI Job Matcher{% endblock %}
+
+{% block content %}
+{% if job %}
+<div class="card">
+    <div class="card-header">
+        <h2 class="mb-1">{{ job.title }}</h2>
+        <h4 class="text-muted">{{ job.company }}</h4>
+    </div>
+    <div class="card-body">
+        <div class="row mb-4">
+            <div class="col-md-6">
+                <p><strong><i class="fas fa-map-marker-alt"></i> Location:</strong> {{ job.location }}</p>
+                <p><strong><i class="fas fa-clock"></i> Experience:</strong> {{ job.experience_required }}</p>
+            </div>
+            <div class="col-md-6">
+                <p><strong><i class="fas fa-money-bill-wave"></i> Salary:</strong> {{ job.salary_range }}</p>
+                <p><strong><i class="fas fa-calendar"></i> Posted:</strong> {{ job.created_at.strftime('%B %d, %Y') }}</p>
+            </div>
+        </div>
+        
+        <div class="mb-4">
+            <h5>Job Description</h5>
+            <p class="whitespace-pre-line">{{ job.description }}</p>
+        </div>
+        
+        <div class="mb-4">
+            <h5>Required Skills</h5>
+            {% set skills = job.required_skills|tojson|fromjson %}
+            {% for skill in skills %}
+                <span class="badge bg-primary me-1 mb-1" style="font-size: 0.9em;">{{ skill }}</span>
+            {% endfor %}
+        </div>
+        
+        <div class="alert alert-info">
+            <h6><i class="fas fa-robot"></i> AI Matching</h6>
+            <p class="mb-0">Upload your resume to see how well you match with this position and get personalized insights.</p>
+        </div>
+    </div>
+    <div class="card-footer">
+        <a href="{{ url_for('upload_resume') }}" class="btn btn-success">
+            <i class="fas fa-upload"></i> Upload Resume to Match
+        </a>
+        <a href="{{ url_for('jobs') }}" class="btn btn-outline-secondary">
+            <i class="fas fa-arrow-left"></i> Back to Jobs
+        </a>
+    </div>
+</div>
+{% else %}
+<div class="alert alert-danger">
+    <h4>Job not found</h4>
+    <p>The job you're looking for doesn't exist or has been removed.</p>
+    <a href="{{ url_for('jobs') }}" class="btn btn-primary">Browse All Jobs</a>
+</div>
+{% endif %}
+{% endblock %}
