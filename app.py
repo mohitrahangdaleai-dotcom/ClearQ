@@ -455,8 +455,7 @@ def internal_error(error):
     db.session.rollback()
     return render_template('500.html'), 500
 
+# Add this at the very bottom of your app.py
 if __name__ == '__main__':
-    # For production, use the PORT environment variable
     port = int(os.environ.get('PORT', 5000))
-    debug = os.environ.get('HOSTINGER_ENV') != 'production'
-    app.run(host='0.0.0.0', port=port, debug=debug)
+    app.run(host='0.0.0.0', port=port, debug=False)
